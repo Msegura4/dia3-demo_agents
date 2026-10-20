@@ -70,9 +70,6 @@ class ConversationAgent:
         return base64.b64encode(image_bytes).decode("utf-8")
 
 
-
-
-
 if __name__ == "__main__":
     question = input("Pose ta question :\n")
     response = ask_llm(question)
