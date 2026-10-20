@@ -26,17 +26,23 @@ class UserInterface:
 	def run(self):
 		text_interaction = st.chat_input(
 			"Que veux tu moussaillon ?",
-			accept_file=False,
+			accept_file=True,
 			accept_audio=True
 			)
 
 		if text_interaction:
+			image_bytes = None
+
+			if text_interaction.files:
+				image_bytes = text_interaction.files[0].read()
+
 			if text_interaction.audio is not None:
 				audio_bytes = text_interaction.audio.read()
 				text_interaction = self.conversation_agent_object.transcribe(audio_bytes)
 			else:
 				text_interaction = text_interaction.text
-			self.conversation_agent_object.ask_llm(text_interaction)
+
+			self.conversation_agent_object.ask_llm(text_interaction, image_bytes=image_bytes)
 			self.show_discussion_history()
 
 

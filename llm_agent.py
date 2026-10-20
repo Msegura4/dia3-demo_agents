@@ -1,7 +1,7 @@
 from groq import Groq
-
 from dotenv import load_dotenv
 import os
+import base64
 
 
 class ConversationAgent:
@@ -35,16 +35,25 @@ class ConversationAgent:
         )
 
 
-    def ask_llm(self, text_interaction):
+    def ask_llm(self, text_interaction, image_bytes=None):
 
-        self.update_conversation_history(role="user", content=text_interaction)
+        if image_bytes is not None:
+            content = [
+                {"type": "text", "text": text_interaction},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{self.encode_image(image_bytes)}"}}
+            ]
+            model = "qwen/qwen3.8-27b"
+        else:
+            content = text_interaction
+            model = "openai/gpt-oss-120b"
+
+        self.update_conversation_history(role="user", content=content)
 
         response = self.groq_client.chat.completions.create(
             messages=self.conversation_history,
-            model="openai/gpt-oss-120b",
+            model=model,
             include_reasoning=False,
         ).choices[0].message.content
-
 
         self.update_conversation_history(role="assistant", content=response)
 
@@ -58,6 +67,10 @@ class ConversationAgent:
       )
       return transcription.text
 
+
+    @staticmethod
+    def encode_image(image_bytes):
+        return base64.b64encode(image_bytes).decode("utf-8")
 
 
 
