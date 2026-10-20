@@ -49,27 +49,14 @@ class ConversationAgent:
         self.update_conversation_history(role="assistant", content=response)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    @staticmethod
+    def transcribe(audio_bytes):
+      groq_client = Groq(api_key=os.environ["GROQ_KEY"])
+      transcription = groq_client.audio.transcriptions.create(
+          file=("audio.wav", audio_bytes, "audio/wav"),
+          model="whisper-large-v3",
+      )
+      return transcription.text
 
 
 
