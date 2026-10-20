@@ -2,36 +2,50 @@ from groq import Groq
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
 
+class Chatagent:
+    def __init__(self):
+        load_dotenv()
+        self.groq_client = Groq(api_key=os.environ["GROQ_KEY"])
+        self.chat_history = [
+            {
+                "role": "system",
+                "content": Chatagent.read_file(file_path="./context.txt")
+            }
+        ]
 
-def read_file(file_path):
-    with open(file_path, "r") as file:
-        return file.read()
+    @staticmethod
+    def read_file(file_path):
+        with open(file_path, "r") as file:
+            return file.read()
 
+    def update_history_chat(self, role, content):
+        self.chat_history.append(
+            {
+                "role": role,
+                "content": content
+            }
+        )
 
-def ask_llm(messages_history):
-    client = Groq(api_key=os.environ["GROQ_KEY"])
+    def ask_llm(self, question):
+        self.update_history_chat(role="user", content=question)
 
-    messages = [{"role": "system", "content": read_file(file_path="./context.txt")}]
-    messages += messages_history
+        response = self.groq_client.chat.completions.create(
+            messages=self.chat_history,
+            model="openai/gpt-oss-120b",
+            include_reasoning=False,
+        ).choices[0].message.content
 
-    chat_completion = client.chat.completions.create(
-        messages=messages,
-        model="openai/gpt-oss-120b",
-        include_reasoning=False,
-    )
+        self.update_history_chat(role="assistant", content=response)
 
-    return chat_completion.choices[0].message.content
+        return response
 
 
 if __name__ == "__main__":
-    messages_history = []
+    agent = Chatagent()
     while True:
         question = input("Pose ta question :\n")
         if question.lower() in ("exit", "quit"):
             break
-        messages_history.append({"role": "user", "content": question})
-        response = ask_llm(messages_history)
-        messages_history.append({"role": "assistant", "content": response})
+        response = agent.ask_llm(question)
         print("\n" + response + "\n")
