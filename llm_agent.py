@@ -35,12 +35,12 @@ class ConversationAgent:
         )
 
 
-    def ask_llm(self, text_interaction, image_bytes=None):
+    def ask_llm(self, text_interaction, image_bytes=None, image_type=None):
 
         if image_bytes is not None:
             content = [
                 {"type": "text", "text": text_interaction},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{self.encode_image(image_bytes)}"}}
+                {"type": "image_url", "image_url": {"url": f"data:{image_type};base64,{self.encode_image(image_bytes)}"}}
             ]
             model = "qwen/qwen3.8-27b"
         else:

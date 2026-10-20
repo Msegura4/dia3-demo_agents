@@ -20,7 +20,15 @@ class UserInterface:
 	def show_discussion_history(self):
 		for message in self.conversation_agent_object.get_conversation_history():
 			with st.chat_message(message["role"]):
-				st.markdown(message["content"])
+				content = message["content"]
+				if isinstance(content, list):
+					for block in content:
+						if block["type"] == "text":
+							st.markdown(block["text"])
+						elif block["type"] == "image_url":
+							st.image(block["image_url"]["url"])
+				else:
+					st.markdown(content)
 
 
 	def run(self):
@@ -32,9 +40,12 @@ class UserInterface:
 
 		if text_interaction:
 			image_bytes = None
+			image_type = None
 
 			if text_interaction.files:
-				image_bytes = text_interaction.files[0].read()
+				uploaded_file = text_interaction.files[0]
+				image_bytes = uploaded_file.read()
+				image_type = uploaded_file.type
 
 			if text_interaction.audio is not None:
 				audio_bytes = text_interaction.audio.read()
@@ -42,7 +53,7 @@ class UserInterface:
 			else:
 				text_interaction = text_interaction.text
 
-			self.conversation_agent_object.ask_llm(text_interaction, image_bytes=image_bytes)
+			self.conversation_agent_object.ask_llm(text_interaction, image_bytes=image_bytes, image_type=image_type)
 			self.show_discussion_history()
 
 
